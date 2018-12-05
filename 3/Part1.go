@@ -14,23 +14,9 @@ type rectangle struct {
 	id, left, top, width, height int
 }
 
-func (r1 rectangle) union(r2 rectangle) rectangle {
-	if r1.left > r2.left+r2.width || r2.left > r1.left+r1.width {
-		return rectangle{}
-	}
-	if r1.top > r2.top+r2.height || r2.top > r1.top+r1.height {
-		return rectangle{}
-	}
-	left := max(r1.left, r2.left)
-	top := max(r1.top, r2.top)
-	right := min(r1.left+r1.width, r2.left+r2.width)
-	bottom := min(r1.top+r1.height, r2.top+r2.height)
-	return rectangle{0, left, top, right - left, bottom - top}
-}
-
-func (r1 rectangle) area() int {
-	return r1.width * r1.height
-}
+const (
+	width = 1000
+)
 
 func main() {
 	if len(os.Args) < 2 {
@@ -43,41 +29,30 @@ func main() {
 		log.Fatal(err)
 	}
 
-	rectangles := make([]rectangle, 0)
+	grid := make(map[int]int)
 	input := bufio.NewScanner(infile)
 	for input.Scan() {
 		nextRect, err := parseRectangle(input.Text())
 		if err != nil {
 			log.Fatal(err)
 		}
-		rectangles = append(rectangles, nextRect)
+
+		for row := nextRect.top * width; row < (nextRect.top+nextRect.height)*width; row += width {
+			for col := nextRect.left; col < nextRect.left+nextRect.width; col++ {
+				grid[row+col]++
+			}
+		}
 	}
 
 	var overlap int
-	for i, r1 := range rectangles {
-		for _, r2 := range rectangles[i:] {
-			area := r1.union(r2).area()
-			fmt.Printf("%d ", area)
-			overlap += area
+	for _, v := range grid {
+		if v > 1 {
+			overlap++
 		}
 	}
 
 	fmt.Fprintln(os.Stdout, overlap)
 
-}
-
-func max(a, b int) int {
-	if a >= b {
-		return a
-	}
-	return b
-}
-
-func min(a, b int) int {
-	if a <= b {
-		return a
-	}
-	return b
 }
 
 func parseRectangle(s string) (rect rectangle, err error) {
