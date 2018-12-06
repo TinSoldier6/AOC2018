@@ -19,10 +19,18 @@ func main() {
 	infile, err := ioutil.ReadFile(os.Args[1])
 	fail(err)
 
+	polymers := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	// Whitespace is a gotcha
 	input := strings.TrimSpace(string(infile))
-	output := pass(input)
-	fmt.Fprintln(os.Stdout, len(output))
+	min := len(input)
+	for _, r := range polymers {
+		s := remove(r, input)
+		output := pass(s)
+		if len(output) < min {
+			min = len(output)
+		}
+	}
+	fmt.Fprintln(os.Stdout, min)
 
 }
 
@@ -69,4 +77,16 @@ func pass(input string) string {
 	}
 
 	return output
+}
+
+func remove(r1 rune, s string) string {
+	r2 := unicode.ToLower(r1)
+	out := strings.Builder{}
+	for _, r := range s {
+		if r == r1 || r == r2 {
+			continue
+		}
+		out.WriteRune(r)
+	}
+	return out.String()
 }
